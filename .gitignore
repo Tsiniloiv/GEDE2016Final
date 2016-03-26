@@ -6,6 +6,15 @@
 *.user
 *.sln.docstates
 
+# irrelevant folders
+GEDELab1/
+GEDELab3/
+GEDELab4/
+GEDELab5/
+GEDELab6/
+Lab1/
+LabFiles/ParticleSystems/
+
 # Build results
 
 [Dd]ebug/
