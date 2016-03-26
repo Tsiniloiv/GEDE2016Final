@@ -1,0 +1,28 @@
+GEDEFinal TODO:
+
+Set up solid base:
+- Import world mesh and render such that it's easily
+  visible without having to look for it
+
+Waypoint map generation algorithm concept (generation happens in loading):
+
+1. Get the size of the world model, then define an area above the world model with
+the same width and length
+
+-Bounding box, presumably. Gotta remember: Bounding box is slightly padded.
+
+Plan: Can I draw the area as a plane?
+
+2. Choose points at regular intevals within that area.
+- Could tie this to some sort of "resolution" variable to dictate map density
+
+3. Raycast downwards from those points.
+- Result: Now we have a bunch of points on the world mesh!
+- We can calculate height differences and slopes and such using raycast lengths
+- Need a good way to store all this data.
+
+4. Cull impassable points by provided criteria.
+- Height differences and such.
+
+4. Ideal output: A waypoint map which we can feed to a pathfinding agent
+as a world state.
