@@ -16,6 +16,11 @@ Plan: Can I draw the area as a plane?
 2. Choose points at regular intevals within that area.
 - Could tie this to some sort of "resolution" variable to dictate map density
 
+far right to far left x:
+10.2 to -10.2
+far right to near right z:
+-10.2 to 10.2
+
 3. Raycast downwards from those points.
 - Result: Now we have a bunch of points on the world mesh!
 - We can calculate height differences and slopes and such using raycast lengths
