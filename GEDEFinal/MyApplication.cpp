@@ -1,5 +1,6 @@
 #include <iostream>
 #include "OGRE\Ogre.h"
+#include "Ogre.h"
 #include "OGRE/OgreRoot.h"
 #include "OGRE/OgreSceneManager.h"
 #include "OGRE/OgreSceneNode.h"
@@ -91,16 +92,18 @@ class MyApplication {
 			return _keepRunning;
 		}
 
-		void createScene() {
+		void createScene() 
+		{
 			Ogre::Entity* world = _sceneManager->createEntity("world", "Plane.mesh");
 			cout << "created world entity \n";
 			Ogre::SceneNode* modelNode = _sceneManager->getRootSceneNode();//->createChildSceneNode();
+			
 			cout << "created model scene node\n";
+			
+			modelNode->setPosition(0,0,0);
+			//modelNode->setScale(100,1,100); // You may have to scale your object to see it well
 			modelNode->attachObject(world);
 			cout << "attached world model to scene node\n";
-			modelNode->setPosition(0,0,0);
-			//modelNode->setScale(100,0,100); // You may have to scale your object to see it well\\
-			
 			/*
 			Ogre::AxisAlignedBox worldbox = _sceneManager->getEntity("world")->getBoundingBox();
 			_sceneManager->createEntity("marker1", Ogre::SceneManager::PT_SPHERE);
@@ -143,6 +146,192 @@ class MyApplication {
 					testNode->setPosition(i, 0, j);*/
 				}
 			}
+
+
+			//ugly but working world/height map generation 
+			Ogre::Entity* _myCubes[10][10];
+		std::pair<Ogre::Vector3,Ogre::Real> _myCubesWaypoints[10][10];
+		bool _myCubesBool[10][10] = 
+		{
+			{1,0,1,1,1,1,1,1,1,1},
+			{1,0,1,0,0,0,0,0,0,1},
+			{1,0,0,0,1,1,1,1,0,1},
+			{1,0,1,0,1,0,1,1,1,1},
+			{1,0,0,0,0,0,1,0,0,1},
+			{1,1,1,0,0,1,1,1,0,1},
+			{1,0,0,1,0,1,0,0,0,1},
+			{1,0,1,1,0,1,0,1,0,1},
+			{1,0,0,0,0,0,0,1,0,1},
+			{1,1,1,1,1,1,1,1,0,1}
+			
+		};
+		Ogre::Real posX = 120;
+		Ogre::Real posZ = 0;
+		for(int x = 0; x < 10 ; x++)
+		{
+			int my_intX = x+1;
+			for(int i = 0; i < 10 ; i++)
+			{
+				Ogre::String name = "CubeX ";
+				
+				int my_intY = i+1;
+				name.append(Ogre::StringConverter::toString(my_intX));
+				name.append(" Y ");
+				name.append(Ogre::StringConverter::toString(my_intY));
+				_myCubesWaypoints[x][i] = std::make_pair(Ogre::Vector3(posX,0,posZ),0);
+				if(_myCubesBool[x][i])
+				{
+					_myCubes[x][i] =  _sceneManager->createEntity(name, "Cube.mesh");
+					//_myCubes[x][i]->setMaterialName("shader/orange");
+					//const Ogre::AxisAlignedBox& CubeBoundingBox=_myCubes[x][i]->getWorldBoundingBox(true);
+						
+
+					Ogre::SceneNode* cubenodeX = _sceneManager->getRootSceneNode()->createChildSceneNode();
+				//cubenode2->attachObject(_myCube2);
+					cubenodeX->scale(0.1, 0.1, 0.1);    //Try different values
+					cubenodeX->setPosition(posX, 0.0, posZ);
+					cubenodeX->showBoundingBox(true);
+					cubenodeX->attachObject(_myCubes[x][i]);
+
+					Ogre::Vector3 RayOrigin(posX,100,posZ);
+					Ogre::Vector3 RayDir(0,-10,0);
+					Ogre::Ray CubeRay(RayOrigin,RayDir);
+					std::pair<bool, Ogre::Real> point2 = CubeRay.intersects(_myCubes[x][i]->getWorldBoundingBox(true));
+					if (point2.first)
+					{
+						Ogre::Vector3 height = CubeRay.getPoint(point2.second);
+						//std::cout << "the height at " << name << " is " << height.y << std::endl;
+						_myCubesWaypoints[x][i].first.y = height.y;
+						_myCubesWaypoints[x][i].second = Ogre::Math::Floor(height.y);
+					}
+					
+					
+				}
+				posX += 10;
+				
+			}
+			posX = 120;
+			posZ += 10;
+		}
+		
+		//print out height map
+		std::cout << "printing out height map " << std::endl;
+		for(int x = 0; x < 10 ; x++)
+		{
+			std::cout << "{ ";
+			for(int i = 0; i < 10 ; i++)
+			{
+				std::cout << _myCubesWaypoints[x][i].second << " , ";
+			}
+			std::cout << "}" << std::endl;
+		}
+ 
+		//
+		
+		//
+	Ogre::MaterialPtr myManualObjectMaterial = Ogre::MaterialManager::getSingleton().create("manual1Material","General"); 
+myManualObjectMaterial->setReceiveShadows(false); 
+myManualObjectMaterial->getTechnique(0)->setLightingEnabled(true); 
+myManualObjectMaterial->getTechnique(0)->getPass(0)->setDiffuse(0,0,1,0); 
+myManualObjectMaterial->getTechnique(0)->getPass(0)->setAmbient(0,0,1); 
+myManualObjectMaterial->getTechnique(0)->getPass(0)->setSelfIllumination(0,0,1); 
+
+	Ogre::MaterialPtr myManualObjectMaterial2 = Ogre::MaterialManager::getSingleton().create("manual2Material","General"); 
+myManualObjectMaterial2->setReceiveShadows(false); 
+myManualObjectMaterial2->getTechnique(0)->setLightingEnabled(true); 
+myManualObjectMaterial2->getTechnique(0)->getPass(0)->setDiffuse(1,0,0,0); 
+myManualObjectMaterial2->getTechnique(0)->getPass(0)->setAmbient(1,0,0); 
+myManualObjectMaterial2->getTechnique(0)->getPass(0)->setSelfIllumination(1,0,0); 
+
+	for (int x = 0; x < 10; x++)
+	{
+		int my_intX = x+1;
+		for (int i = 0; i < 10; i++)
+		{
+			Ogre::String name = "GridLine X";
+			Ogre::String name2 = "GridLine2 X";
+				int my_intY = i+1;
+				name.append(Ogre::StringConverter::toString(my_intX));
+				name.append(" Y ");
+				name.append(Ogre::StringConverter::toString(my_intY));
+				name2.append(Ogre::StringConverter::toString(my_intX));
+				name2.append(" Y ");
+				name2.append(Ogre::StringConverter::toString(my_intY));
+				Ogre::ManualObject *manual = static_cast<Ogre::ManualObject*>(_sceneManager->createMovableObject(name, Ogre::ManualObjectFactory::FACTORY_TYPE_NAME));
+				Ogre::ManualObject *manual2 = static_cast<Ogre::ManualObject*>(_sceneManager->createMovableObject(name2, Ogre::ManualObjectFactory::FACTORY_TYPE_NAME));
+				Ogre::SceneNode* gridNode = _sceneManager->getRootSceneNode()->createChildSceneNode();
+			if(x == 9)
+			{
+				if(i == 9)
+				{
+
+				}
+				else
+				{
+					
+					Ogre::Vector3 start = _myCubesWaypoints[x][i].first;
+					Ogre::Vector3 endX = _myCubesWaypoints[x][i+1].first;
+					if(Ogre::Math::Abs((start.y*start.y)-(endX.y*endX.y)) > 20)
+					{
+						manual->begin("manual2Material", Ogre::RenderOperation::OT_LINE_LIST);
+					}
+					else
+					{
+						manual->begin("manual1Material", Ogre::RenderOperation::OT_LINE_LIST);
+					}
+					//draw line from point [x][y] to [x][y+1]
+					manual->position(start.x, start.y+5, start.z);
+					manual->position(endX.x, endX.y+5, endX.z);
+      
+					manual->end();
+					gridNode->attachObject(manual);
+				}
+			}
+			else
+			{
+				Ogre::Vector3 start = _myCubesWaypoints[x][i].first;
+					Ogre::Vector3 endX = _myCubesWaypoints[x][i+1].first;
+					Ogre::Vector3 endY = _myCubesWaypoints[x+1][i].first;
+				if(i == 9)
+				{
+				}
+				else
+				{
+					if(Ogre::Math::Abs((start.y*start.y)-(endX.y*endX.y)) > 20)
+					{
+						manual->begin("manual2Material", Ogre::RenderOperation::OT_LINE_LIST);
+					}
+					else
+					{
+						manual->begin("manual1Material", Ogre::RenderOperation::OT_LINE_LIST);
+					}
+					//draw line from point [x][y] to [x][y+1]
+					manual->position(start.x, start.y+5, start.z);
+					manual->position(endX.x, endX.y+5, endX.z);
+      
+					manual->end();
+					gridNode->attachObject(manual);
+
+					if(Ogre::Math::Abs((start.y*start.y)-(endY.y*endY.y)) > 20)
+					{
+						manual2->begin("manual2Material", Ogre::RenderOperation::OT_LINE_LIST);
+					}
+					else
+					{
+						manual2->begin("manual1Material", Ogre::RenderOperation::OT_LINE_LIST);
+					}
+					//draw line from point [x][y] to [x+1][y]
+					manual2->position(start.x, start.y+5, start.z);
+					manual2->position(endY.x, endY.y+5, endY.z);
+      
+					manual2->end();
+					gridNode->attachObject(manual2);
+				}
+			}
+		}
+	}
+			//
+
 			
 			Ogre::Vector3 raycastresult;
 
