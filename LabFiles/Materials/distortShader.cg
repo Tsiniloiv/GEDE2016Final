@@ -1,0 +1,55 @@
+uniform sampler2D RttTex : TEXUNIT0;
+uniform sampler2D offsetMap : TEXUNIT1;
+uniform float4x4  mat_modelproj;
+uniform float myTime;
+ 
+// Vertex program input
+struct VP_input {
+    float4 pos  : POSITION;
+    float4 uv   : TEXCOORD0;
+};
+ 
+// Vertex program output / fragment program input.
+struct VP_output {
+    float4 pos      : POSITION;
+    float4 uv       : TEXCOORD0;
+    float4 uvPos    : TEXCOORD1;
+};
+ 
+ 
+VP_output main_distort_vp( VP_input p_in ) {
+    VP_output output;
+ 
+    // Transform the current vertex into projection space.
+    output.pos = mul(mat_modelproj, p_in.pos  );
+    output.uv = p_in.uv;
+ 
+    // Since the fragment shader will not be able to read the position Semantic, 
+    // we must pass down the position to the fragment shader via texture coordinate.
+    // Note: In DirectX 10+ fragment shader have access to the current pixels position :)
+    output.uvPos = output.pos;
+ 
+    return output;
+}
+ 
+float4 main_distort_fp( VP_output p_in ) : COLOR {
+    // Create a variable to hold the screen space uv coordinates
+    float2 screenUV;
+ 
+    // Since  the vertex shader doesn't the divide by w automatically, 
+    // we have to do so explicitly here our selves to get the viewport coordinates.
+    screenUV = float2(p_in.uvPos.x, -p_in.uvPos.y) / p_in.uvPos.w;
+    // Viewport coordinates range from -1 to 1, so we must map them to the range 0..1 to be valid UV coordinates.
+    screenUV = ( screenUV + 1.0f ) * 0.5f;
+ 
+    // Read the current offset from the offset map.
+    float2 offset = tex2D( offsetMap, p_in.uv.xy + myTime*.01).xy ;
+ 
+    // Texture can not store negative values, so we must take our offset vectors, and map them to the correct range from (0..1) to (-1..1)
+    offset = (offset - 0.5f) * 2.0 ;
+ 
+    // You can change the last two values to configure the intensity and lightness of the shader.
+    float4 oColor = tex2D( RttTex, screenUV.xy + offset * 0.07 ) * 0.5 ;
+ 
+    return oColor;
+} 

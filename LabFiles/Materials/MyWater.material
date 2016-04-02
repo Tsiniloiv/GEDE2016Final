@@ -1,0 +1,39 @@
+vertex_program shader/waterVP cg {
+	source distortShader.cg
+	entry_point main_distort_vp
+	profiles vs_1_1 arbvp1
+	default_params {
+		param_named_auto mat_modelproj worldviewproj_matrix
+	}
+}
+
+fragment_program shader/waterFP cg {
+	source distortShader.cg
+	entry_point main_distort_fp
+	profiles ps_2_0 arbfp1
+	default_params {
+		param_named_auto myTime time 1
+	}
+}
+
+material custom/MyWater {
+	technique {
+		pass {
+			vertex_program_ref shader/waterVP {
+			}
+
+			fragment_program_ref shader/waterFP 
+			{
+			}
+
+			texture_unit 0 {
+				tex_address_mode mirror
+				texture RttTex
+			}
+			texture_unit 1 {
+				tex_address_mode mirror
+				texture offsetMap.png
+			}
+		}
+	}
+} 

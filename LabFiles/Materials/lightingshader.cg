@@ -1,0 +1,66 @@
+// Cg
+void main_vp(
+  float4 vtx_position       : POSITION,
+  float3 vtx_normal         : NORMAL,
+  float2 vtx_texcoord0      : TEXCOORD0,
+ 
+  uniform float4x4 mat_modelproj,
+  uniform float4   mspos_light,
+  uniform float4   mspos_camera,
+ 
+  out float4 l_position  : POSITION,
+  out float2 l_texcoord0 : TEXCOORD0,
+  out float3 l_N    	 : TEXCOORD1,
+  out float3 l_L     	 : TEXCOORD2,
+  out float3 l_V    	 : TEXCOORD3,
+  out float3 l_P         : TEXCOORD4
+)
+{
+  l_position = mul(mat_modelproj, vtx_position);
+  l_texcoord0 = vtx_texcoord0;
+ 
+  // The principal vectors for our Phong lighting model calculation:
+  // L = Light Vector, N = Vertex Normal, V = View Vector R = Light Reflection Vector 
+  l_N = vtx_normal;  // The Normal of the vertex itself was passed in automatically
+  // We passed in the light and camera NodePaths and get their model space coordinates
+  // here through the "mspos_<name>" variable. Everything here should be done in model space.
+  // The w component of the mspos_light indicated whether the light is directional or a point.
+  // So you must check whether you have to calculate the direction or use it directly.
+  if( mspos_light.w == 1.0) {
+  	l_L = normalize(mspos_light.xyz - vtx_position.xyz);
+  } else {
+  	l_L = mspos_light.xyz;
+  }
+  l_V = normalize(mspos_camera.xyz - vtx_position.xyz);
+  l_P = vtx_position.xyz;
+  // We can't calculate the R vector here because it won't interpolate correctly for each fragment
+  // (it relies on a dot product which complicates things for it), so we'll calculate it inside the 
+  // fragment shader. The other vectors will all get interpolated and passed to the fragments.
+ 
+}
+ 
+void main_fp(
+  float2 l_texcoord0 	: TEXCOORD0, 
+  float3 l_N		: TEXCOORD1, 
+  float3 l_L    	: TEXCOORD2, 
+  float3 l_V    	: TEXCOORD3,
+  float3 l_P            : TEXCOORD4,
+ 
+  uniform float4 k_ambientc,
+  uniform float4 k_diffusec,
+  uniform float4 k_specularc,
+ 
+  out float4 o_color : COLOR)
+{
+  // Inside the fragment shader, we get all the interpolated vectors
+  // The Diffuse Attenuation follows under what angle the light shines on the fragment
+  float diffuse_attn = saturate(dot(l_L,l_N));
+ 
+  // The Specular Attenuation follows how close to the line of light reflection you are looking
+  float3 R = normalize(2*l_N*dot(l_N,l_L)-l_L);
+  float specular_attn = pow(saturate(dot(R,l_V)),6.0);
+ 
+  // Here we return the color based on the full phong light model
+  o_color = 0.2*k_ambientc + diffuse_attn*k_diffusec+specular_attn*k_specularc;
+ 
+}

@@ -1,0 +1,50 @@
+void main_vp(
+        // Per-vertex information
+        float4 vtx_position         : POSITION,     // Vertex position in model space
+        float2 vtx_texcoord0        : TEXCOORD0,    // Texture UV set 0
+        // Provided parameters
+        uniform float4x4  mat_modelproj,
+        // Shader outputs
+        out float4 l_position       : POSITION,     // Transformed vertex position
+        out float2 l_texcoord0      : TEXCOORD0)    // UV0
+ 
+{
+    // Calculate output position (a vertex shader is expected to at least do this!)
+    l_position = mul(mat_modelproj, vtx_position);
+    // Simply copy the input vertex UV to the output
+    l_texcoord0 = vtx_texcoord0;
+}
+ 
+void main_fp(
+        // Interpolated fragment values
+        float2 l_texcoord0        : TEXCOORD0,    // UV interpolated for current pixel
+        // Provided parameters and data
+        uniform sampler2D texture,        // Texture we're going to use
+        // Shader output
+        out float4 o_color    : COLOR)    // Output color we want to write
+{
+    // Just sample texture using supplied UV
+    o_color = tex2D(texture, l_texcoord0);
+}
+
+void main_time_vp(
+        // Per-vertex information
+        float4 vtx_position         : POSITION,     // Vertex position in model space
+        float2 vtx_texcoord0        : TEXCOORD0,    // Texture UV set 0
+        // Provided parameters
+        uniform float4x4  mat_modelproj,
+        uniform float t,                            // Expecting time here
+        // Shader outputs
+        out float4 l_position       : POSITION,     // Transformed vertex position
+        out float2 l_texcoord0      : TEXCOORD0)    // UV0
+ 
+{
+    // Displace the vertical coordinate based on x-location and time
+    float4 temp = vtx_position;
+    temp.y = temp.y+cos(temp.x+t);
+ 
+    // Calculate output position
+    l_position = mul(mat_modelproj, temp);
+    // Simply copy the input vertex UV to the output
+    l_texcoord0 = vtx_texcoord0;
+}

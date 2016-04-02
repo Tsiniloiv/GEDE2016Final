@@ -1,0 +1,206 @@
+fragment_program shader/orangeFP cg {
+    source diffuseshader.cg
+    entry_point main_orange_fp
+    profiles ps_1_1 arbfp1 
+    
+}
+
+material shader/orange 
+{
+    technique 
+	{
+        pass 
+		{           
+            fragment_program_ref shader/orangeFP {
+            }       
+            texture_unit {       
+            }             
+        }
+    }
+}
+
+fragment_program shader/diffuseFP cg 
+{
+    source diffuseshader.cg
+    entry_point main_color_fp
+    profiles ps_1_1 arbfp1 
+ 
+    default_params {
+        param_named color float4 0.7 0.2 0.2 1.0
+    }
+} 
+ 
+material shader/white 
+{
+    technique {
+        pass {             
+            fragment_program_ref shader/diffuseFP {
+                param_named color float4 0.8 0.8 0.8 1.0
+            }    
+            texture_unit {       
+            }                      
+        }
+    }
+}
+
+fragment_program shader/customFP cg {
+    source diffuseshader.cg
+    entry_point main_color_fp
+    profiles ps_1_1 arbfp1 
+    
+    default_params {
+        param_named_auto color custom 1
+    }
+}
+
+material shader/custom {
+    technique {
+        pass {             
+            fragment_program_ref shader/customFP {
+                param_named_auto color custom 1
+            }          
+            texture_unit {       
+            }                     
+        }
+    }
+}
+
+vertex_program shader/textureVP cg {
+    source textureshader.cg         
+    entry_point main_vp    
+    profiles vs_1_1 arbvp1    
+
+    default_params {
+        param_named_auto mat_modelproj worldviewproj_matrix   
+    }
+}
+
+vertex_program shader/timetextureVP cg 
+{
+    source textureshader.cg         
+    entry_point main_time_vp    
+    profiles vs_1_1 arbvp1    
+
+    default_params {
+        param_named_auto mat_modelproj worldviewproj_matrix   
+        param_named_auto t time 
+    }
+}
+fragment_program shader/textureFP cg 
+{
+
+    source textureshader.cg
+    entry_point main_fp
+    profiles ps_1_1 arbfp1  
+}
+
+material shader/texture {
+    technique 
+	{
+        pass 
+		{      
+            vertex_program_ref shader/textureVP {
+            }
+            fragment_program_ref shader/textureFP {
+            }
+            texture_unit {
+                texture Water02.jpg 2d            
+            }                      
+        }
+    }
+}
+
+material shader/texture3 {
+    technique 
+	{
+        pass 
+		{      
+            vertex_program_ref shader/textureVP {
+            }
+            fragment_program_ref shader/textureFP {
+            }
+            texture_unit {
+                texture hedge.jpg 2d            
+            }                      
+        }
+    }
+}
+
+material shader/texture2 {
+    technique 
+	{
+        pass 
+		{      
+            vertex_program_ref shader/timetextureVP {
+            }
+            fragment_program_ref shader/textureFP {
+            }
+            texture_unit 
+			{
+                texture Water02.jpg 2d
+            }                      
+        }
+    }
+}
+
+vertex_program shader/lightingVP cg 
+{
+    source lightingshader.cg
+    entry_point main_vp
+    profiles vs_1_1 arbvp1
+    
+    default_params {
+        param_named_auto mat_modelproj worldviewproj_matrix
+        param_named_auto mspos_light light_position_object_space 0
+        param_named_auto mspos_camera camera_position_object_space
+    }
+}
+
+fragment_program shader/lightingFP cg {
+    source lightingshader.cg
+    entry_point main_fp
+    profiles ps_2_0 arbfp1
+  
+    default_params {
+        param_named k_ambientc float4 0.5 0.5 0.5 1.0
+        param_named k_diffusec float4 0.8 0.1 0.1 1.0
+        param_named k_specularc float4 0.6 0.6 0.6 1.0
+    }
+}
+
+material shader/lighting 
+{
+    technique 
+	{
+        pass 
+		{      
+            vertex_program_ref shader/lightingVP {
+            }
+            fragment_program_ref shader/lightingFP {
+            }
+            texture_unit 
+			{
+                
+            }                      
+        }
+    }
+}
+
+material custom/BoardRtt
+{
+	technique
+	{
+		pass
+		{
+                        // Leaving the vertex and fragment ref's blank, 
+                        // will make Ogre use fixed function vertex and fragment programs.
+                        
+			texture_unit 
+			{
+                                // Notice: This is the name we gave in the createRenderTarget method.
+				texture RttTex
+			}
+
+		}
+	}
+} 
