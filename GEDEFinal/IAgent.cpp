@@ -1,3 +1,7 @@
+#include "OGRE/Ogre.h"
+#include "State.cpp"
+#include "OIS\OIS.h"
+
 using namespace std;
 
 class IAgengt {
@@ -7,7 +11,9 @@ class IAgengt {
 		Member variables: current state, current path
 		Methods: search, generate successor state, heuristic
 	*/
-
+	private:
+		State currState;
+		std::deque<Ogre::Vector3> currSolution;
 	public:
 		
 };
