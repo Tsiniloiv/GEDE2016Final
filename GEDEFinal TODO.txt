@@ -31,3 +31,15 @@ far right to near right z:
 
 4. Ideal output: A waypoint map which we can feed to a pathfinding agent
 as a world state.
+
+---
+
+Agent notes:
+
+Things we need:
+world state class? would track: agent location, world layout
+Search tree nodes
+Agent to query - inherit generic agent class so we can possibly have multiple agents with different algorithms
+
+store a bunch of agents in the application class
+query those agents on command
