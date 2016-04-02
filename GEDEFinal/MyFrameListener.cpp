@@ -3,6 +3,8 @@
 #include "OGRE/OgreSceneManager.h"
 #include "OGRE/OgreSceneNode.h"
 #include "OGRE/OgreRenderWindow.h"
+#include "OGRE/OgreMeshManager.h"
+#include "OGRE/OgreMesh.h"
 #include "OGRE/OgreConfigFile.h"
 #include "OGRE/OgreEntity.h"
 #include "OIS\OIS.h"

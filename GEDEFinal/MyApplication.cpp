@@ -1,9 +1,11 @@
 #include <iostream>
-#include "OGRE\Ogre.h"
+#include "OGRE/Ogre.h"
 #include "Ogre.h"
 #include "OGRE/OgreRoot.h"
 #include "OGRE/OgreSceneManager.h"
 #include "OGRE/OgreSceneNode.h"
+#include "OGRE/OgreMeshManager.h"
+#include "OGRE/OgreMesh.h"
 #include "OGRE/OgreRenderWindow.h"
 #include "OGRE/OgreConfigFile.h"
 #include "OGRE/OgreEntity.h"
@@ -233,7 +235,7 @@ class MyApplication {
 		};
 		
 
-			Ogre::Real posX = 20;
+			Ogre::Real posX = 0;
 		Ogre::Real posZ = 0;
 		for(int x = 0; x < size ; x++)
 		{
@@ -259,7 +261,7 @@ class MyApplication {
 				//cubenode2->attachObject(_myCube2);
 					cubenodeX->scale(0.1, (_myCubesBool[x][i]*0.1), 0.1);    //Try different values
 					cubenodeX->setPosition(posX, 0.0, posZ);
-					cubenodeX->showBoundingBox(true);
+					//cubenodeX->showBoundingBox(true);
 					cubenodeX->attachObject(_myCubes[x][i]);
 
 					Ogre::Vector3 RayOrigin(posX,100,posZ);
@@ -279,7 +281,7 @@ class MyApplication {
 				posX += 10;
 				
 			}
-			posX = 20;
+			posX = 0;
 			posZ += 10;
 		}
 
@@ -314,57 +316,29 @@ class MyApplication {
 		{
 			Ogre::Entity* world = _sceneManager->createEntity("world", "Plane.mesh");
 			cout << "created world entity \n";
-			Ogre::SceneNode* modelNode = _sceneManager->getRootSceneNode();//->createChildSceneNode();
-			
+			world->setMaterialName("shader/texture_ground");
+			Ogre::SceneNode* modelNode = _sceneManager->getRootSceneNode()->createChildSceneNode();
+			modelNode->attachObject(world);
 			cout << "created model scene node\n";
 			
-			modelNode->setPosition(0,0,0);
-			//modelNode->setScale(10,1,10); // You may have to scale your object to see it well
-			modelNode->attachObject(world);
+			modelNode->setPosition(0,-5,0);
+			modelNode->setScale(100,1,100); // You may have to scale your object to see it well
+			//modelNode->attachObject(world);
 			cout << "attached world model to scene node\n";
-			/*
-			Ogre::AxisAlignedBox worldbox = _sceneManager->getEntity("world")->getBoundingBox();
-			_sceneManager->createEntity("marker1", Ogre::SceneManager::PT_SPHERE);
-			Ogre::SceneNode* markerNode1 = _sceneManager->getRootSceneNode()->createChildSceneNode();
-			markerNode1->attachObject(_sceneManager->getEntity("marker1"));
-			Ogre::Vector3 farRightCorner = worldbox.getCorner(Ogre::AxisAlignedBox::FAR_RIGHT_TOP);
-			markerNode1->setPosition(farRightCorner);
-			*/
-
-			Ogre::AxisAlignedBox worldbox = _sceneManager->getEntity("world")->getBoundingBox();
-			Ogre::Vector3 farRightCorner = worldbox.getCorner(Ogre::AxisAlignedBox::FAR_RIGHT_TOP);
-			Ogre::Vector3 farLeftCorner = worldbox.getCorner(Ogre::AxisAlignedBox::FAR_LEFT_TOP);
-			Ogre::Vector3 nearRightCorner = worldbox.getCorner(Ogre::AxisAlignedBox::NEAR_RIGHT_TOP);
-			cout << "far right corner: " << farRightCorner << endl;
-			cout << "far left corner: " << farLeftCorner << endl;
-			cout << "near right corner: " << nearRightCorner << endl;
 
 			Ogre::Entity* sinbad = _sceneManager->createEntity("sinbad", "Sinbad.mesh");
 			markerNode = _sceneManager->getRootSceneNode()->createChildSceneNode();
 			markerNode->attachObject(sinbad);
-			markerNode->setPosition(modelNode->getPosition());
-			
+			//markerNode->setPosition(modelNode->getPosition());
+			/*
 			Ogre::Entity* marker2 = _sceneManager->createEntity("sinbad2", "Sinbad.mesh");
 			Ogre::SceneNode* markerNode2 = _sceneManager->getRootSceneNode()->createChildSceneNode();
 			markerNode2->attachObject(_sceneManager->getEntity("sinbad2"));
 			markerNode2->setPosition(farRightCorner);
-
+			*/
 			/* 
 			hokay so over x and z double loop
 			*/
-
-			Ogre::Real resolution = 1;
-
-			for(Ogre::Real i = farRightCorner.x; i > farLeftCorner.x; i -= resolution) {
-				for(Ogre::Real j = farRightCorner.z; j < nearRightCorner.z; j+= resolution) {
-					/*cout << "Placing marker at " << i << ", " << j << endl;
-					Ogre::Entity* ent = _sceneManager->createEntity("Sinbad.mesh");
-					Ogre::SceneNode* testNode = _sceneManager->getRootSceneNode()->createChildSceneNode();
-					testNode->attachObject(ent);
-					testNode->setPosition(i, 0, j);*/
-				}
-			}
-			
 
 			//ugly but working world/height map generation 
 	
