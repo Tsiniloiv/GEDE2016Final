@@ -49,7 +49,7 @@ class MyFrameListener : public Ogre::FrameListener {
 			OIS::InputManager::destroyInputSystem(_InputManager);
 		}
 
-		bool nextLocation()
+		bool nextLocation() //Consider making this a query to the agent.
 		{
 			if (_WalkList.empty())
 				return false;
