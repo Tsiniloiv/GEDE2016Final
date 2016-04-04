@@ -10,6 +10,7 @@
 #include "OGRE/OgreConfigFile.h"
 #include "OGRE/OgreEntity.h"
 #include "MyFrameListener.cpp"
+#include <array>
 
 using namespace std;
 #define gridSize 20
@@ -23,7 +24,8 @@ class MyApplication {
 		Ogre::SceneNode* markerNode;
 
 		Ogre::Entity* _myCubes[gridSize][gridSize];
-		std::pair<Ogre::Vector3,Ogre::Real> _myCubesWaypoints[gridSize][gridSize];
+		//std::pair<Ogre::Vector3,Ogre::Real> _myCubesWaypoints[gridSize][gridSize];
+		array<array<Ogre::Vector3, gridSize>, gridSize> _myCubesWaypoints;
 		int size;
 		//move on path
 		std::deque<Ogre::Vector3> mWalkList;
@@ -36,7 +38,6 @@ class MyApplication {
 			_root = NULL;
 			_listener = NULL;
 			size = gridSize;
-
 		}
 
 		~MyApplication() {
@@ -141,8 +142,8 @@ class MyApplication {
 				else
 				{
 					
-					Ogre::Vector3 start = _myCubesWaypoints[x][i].first;
-					Ogre::Vector3 endX = _myCubesWaypoints[x][i+1].first;
+					Ogre::Vector3 start = _myCubesWaypoints[x][i];
+					Ogre::Vector3 endX = _myCubesWaypoints[x][i+1];
 					if(Ogre::Math::Abs((start.y*start.y)-(endX.y*endX.y)) > 20)
 					{
 						manual->begin("manual2Material", Ogre::RenderOperation::OT_LINE_LIST);
@@ -161,9 +162,9 @@ class MyApplication {
 			}
 			else
 			{
-				Ogre::Vector3 start = _myCubesWaypoints[x][i].first;
-					Ogre::Vector3 endX = _myCubesWaypoints[x][i+1].first;
-					Ogre::Vector3 endY = _myCubesWaypoints[x+1][i].first;
+				Ogre::Vector3 start = _myCubesWaypoints[x][i];
+					Ogre::Vector3 endX = _myCubesWaypoints[x][i+1];
+					Ogre::Vector3 endY = _myCubesWaypoints[x+1][i];
 				if(i == size-1)
 				{
 				}
@@ -272,8 +273,8 @@ class MyApplication {
 					{
 						Ogre::Vector3 height = CubeRay.getPoint(point2.second);
 						//std::cout << "the height at " << name << " is " << height.y << std::endl;
-						_myCubesWaypoints[x][i].first.y = height.y;
-						_myCubesWaypoints[x][i].second = Ogre::Math::Floor(height.y);
+						_myCubesWaypoints[x][i].y = height.y;
+						//_myCubesWaypoints[x][i].second = Ogre::Math::Floor(height.y);
 					}
 					
 					
@@ -291,7 +292,7 @@ class MyApplication {
 				std::cout << "{";
 				for(int i = 0; i < size ; i++)
 				{
-					std::cout << _myCubesWaypoints[x][i].second << ",";
+					std::cout << _myCubesWaypoints[x][i] << ",";
 				}
 				std::cout << "}"<< std::endl;
 			}
@@ -347,16 +348,16 @@ class MyApplication {
 		renderHeightmap();
 		//generate maze and do raycast
 		Ogre::Vector3 startPos;
-			startPos = _myCubesWaypoints[0][1].first;
+			startPos = _myCubesWaypoints[0][1];
 		markerNode->setPosition(startPos);
 
-		mWalkList.push_back(_myCubesWaypoints[4][1].first);
-		mWalkList.push_back(_myCubesWaypoints[4][4].first);
-		mWalkList.push_back(_myCubesWaypoints[8][4].first);
-		mWalkList.push_back(_myCubesWaypoints[8][6].first);
-		mWalkList.push_back(_myCubesWaypoints[6][6].first);
-		mWalkList.push_back(_myCubesWaypoints[6][8].first);
-		mWalkList.push_back(_myCubesWaypoints[9][8].first);
+		mWalkList.push_back(_myCubesWaypoints[4][1]);
+		mWalkList.push_back(_myCubesWaypoints[4][4]);
+		mWalkList.push_back(_myCubesWaypoints[8][4]);
+		mWalkList.push_back(_myCubesWaypoints[8][6]);
+		mWalkList.push_back(_myCubesWaypoints[6][6]);
+		mWalkList.push_back(_myCubesWaypoints[6][8]);
+		mWalkList.push_back(_myCubesWaypoints[9][8]);
 
 
 		Ogre::Ray ray(Ogre::Vector3(0, 5, 0), Ogre::Vector3(0, -1, 0));
