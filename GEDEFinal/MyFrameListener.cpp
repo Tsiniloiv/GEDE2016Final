@@ -107,7 +107,7 @@ class MyFrameListener : public Ogre::FrameListener {
 				translate += Ogre::Vector3(0, 1, 0);
 			}
 			_Cam->moveRelative(translate * evt.timeSinceLastFrame * _movementspeed);
-			std::cout << "X " <<_Node->getPosition().x << " Y " << _Node->getPosition().y << " Z " << _Node->getPosition().z << std::endl;
+			//std::cout << "X " <<_Node->getPosition().x << " Y " << _Node->getPosition().y << " Z " << _Node->getPosition().z << std::endl;
 			//path movement
 
 			if (_Direction == Ogre::Vector3::ZERO) 

@@ -8,7 +8,7 @@ using namespace std;
 
 const int n=20; // horizontal size of the map
 const int m=20; // vertical size size of the map
-static int map[n][m];
+//static int map[n][m];
 static int closed_nodes_map[n][m]; // map of closed (tried-out) nodes
 static int open_nodes_map[n][m]; // map of open (not-yet-tried) nodes
 static int dir_map[n][m]; // map of directions
@@ -70,18 +70,31 @@ class node
 
             return(d);
         }
+		/*
+		// Determine priority (in the priority queue)
+		bool operator<(const node & b)
+		{
+			int aPriority = getPriority();
+			int bPriority = b.getPriority();
+			bool larger = aPriority > bPriority;
+			return larger;
+		}
+		*/
 };
 
-// Determine priority (in the priority queue)
-bool operator<(const node & a, const node & b)
+struct node_cmp
 {
-  return a.getPriority() > b.getPriority();
-}
+   bool operator()( const node & a, const node & b ) const 
+   {
+		return a.getPriority() > b.getPriority();
+   }
+};
 
+
+/*
 // A-star algorithm.
 // The route returned is a string of direction digits.
-string pathFind( const int & xStart, const int & yStart, 
-                 const int & xFinish, const int & yFinish )
+string pathFind( const int & xStart, const int & yStart, const int & xFinish, const int & yFinish )
 {
     static priority_queue<node> pq[2]; // list of open (not-yet-tried) nodes
     static int pqi; // pq index
@@ -128,7 +141,7 @@ string pathFind( const int & xStart, const int & yStart,
         {
             // generate the path from finish to start
             // by following the directions
-            string path="";
+            string path=" ";
             while(!(x==xStart && y==yStart))
             {
                 j=dir_map[x][y];
