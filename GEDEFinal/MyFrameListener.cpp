@@ -8,6 +8,32 @@
 #include "OGRE/OgreConfigFile.h"
 #include "OGRE/OgreEntity.h"
 #include "OIS\OIS.h"
+#include <vector>
+struct walker
+{
+	std::deque<Ogre::Vector3> mWalkList;
+	Ogre::Entity* sinbad;
+	Ogre::SceneNode* Node;
+	int id;
+	Ogre::Vector3 start;
+	Ogre::Vector3 finish;
+};
+
+struct agent
+{
+	walker walk;
+	Ogre::Vector3 _Direction;
+	Ogre::Vector3 _Destination;
+	Ogre::Real _Distance;
+	bool Dancing;
+	bool walking;
+	Ogre::Quaternion OrgDirection;
+	Ogre::AnimationState* mAnimationState;
+	Ogre::AnimationState* _aniState;
+	Ogre::AnimationState* _aniStateDance;
+	Ogre::AnimationState* _aniStateTop;
+	float _rotation;
+};
 
 class MyFrameListener : public Ogre::FrameListener {
 	private: 
@@ -30,8 +56,11 @@ class MyFrameListener : public Ogre::FrameListener {
 		bool walking;
 		std::deque<Ogre::Vector3> _WalkList;
 		Ogre::Quaternion OrgDirection;
+		agent* walkers;
+		int agentNR;
 	public: 
- 		MyFrameListener(Ogre::RenderWindow* win, Ogre::Camera* cam,std::deque<Ogre::Vector3> mWalkList,Ogre::SceneNode* node,Ogre::Entity* sinbad) 
+		//MyFrameListener(Ogre::RenderWindow* win, Ogre::Camera* cam,std::deque<Ogre::Vector3> mWalkList,Ogre::SceneNode* node,Ogre::Entity* sinbad) 
+		MyFrameListener(Ogre::RenderWindow* win, Ogre::Camera* cam,walker agents[], int size) 
 		{
 			OIS::ParamList parameters;
 			unsigned int windowHandle = 0;
@@ -42,24 +71,63 @@ class MyFrameListener : public Ogre::FrameListener {
 			_InputManager = OIS::InputManager::createInputSystem(parameters);
 			_Keyboard = static_cast<OIS::Keyboard*>(_InputManager->createInputObject(OIS::OISKeyboard, false));
 			_Cam = cam;
-			_Node = node;
+			agentNR = size;
+			walkers = new agent[size];
+			//_Node = node;
+			for(int i = 0 ; i < size; i++)
+			{
+				walkers[i].walk = agents[i];
+				walkers[i]._Direction = Ogre::Vector3::ZERO;
+			walkers[i]._Destination = Ogre::Vector3::ZERO;
+			walkers[i].walk.Node = agents[i].Node;
+			
+			walkers[i]._Distance = 0;
+			walkers[i].Dancing = false;
+			walkers[i].walking = false;
+			/*
+			walkers[i]._aniState = agents[i].sinbad->getAnimationState("RunBase");
+			walkers[i]._aniStateDance = agents[i].sinbad->getAnimationState("Dance");
+			walkers[i]._aniStateDance->setLoop(true);
+			walkers[i]._aniState->setLoop(false);
+			walkers[i]._aniStateTop = agents[i].sinbad->getAnimationState("RunTop");
+			walkers[i]._aniStateTop->setLoop(false);
+			*/
+			walkers[i]._rotation = 0.0f;
+			}
+
+			for(int i = 0 ; i < size; i++)
+			{
+				/*
+				walkers[i].OrgDirection = walkers[i].walk.Node->getOrientation();
+				walkers[i]._aniState = walkers[i].walk.sinbad->getAnimationState("RunBase");
+			walkers[i]._aniStateDance = walkers[i].walk.sinbad->getAnimationState("Dance");
+			walkers[i]._aniStateDance->setLoop(true);
+			walkers[i]._aniState->setLoop(false);
+			walkers[i]._aniStateTop = walkers[i].walk.sinbad->getAnimationState("RunTop");
+			walkers[i]._aniStateTop->setLoop(false);
+			*/
+			}
+
+			//_Node = agents[0].Node;
 			_movementspeed = 50.0f;
+			_WalkSpd = 5;
 			_Mouse = static_cast<OIS::Mouse*>(_InputManager->createInputObject(OIS::OISMouse, false));
+			_Node = agents[0].Node;
 			_Direction = Ogre::Vector3::ZERO;
 			_Destination = Ogre::Vector3::ZERO;
 			OrgDirection = _Node->getOrientation();
-			_WalkSpd = 5;
 			_Distance = 0;
-			_sinbad = sinbad;
-			_WalkList = mWalkList;
+			_sinbad = agents[0].sinbad;
+			_WalkList = agents[0].mWalkList;
 			Dancing = false;
 			walking = false;
-			_aniState = sinbad->getAnimationState("RunBase");
-			_aniStateDance = sinbad->getAnimationState("Dance");
+			_aniState = agents[0].sinbad->getAnimationState("RunBase");
+			_aniStateDance = agents[0].sinbad->getAnimationState("Dance");
 			_aniStateDance->setLoop(true);
 			_aniState->setLoop(false);
-			_aniStateTop = sinbad->getAnimationState("RunTop");
+			_aniStateTop = agents[0].sinbad->getAnimationState("RunTop");
 			_aniStateTop->setLoop(false);
+			
 		}
 		~MyFrameListener() {
 			_InputManager->destroyInputObject(_Keyboard);
@@ -67,15 +135,15 @@ class MyFrameListener : public Ogre::FrameListener {
 			OIS::InputManager::destroyInputSystem(_InputManager);
 		}
 
-		bool nextLocation() //Consider making this a query to the agent.
+		bool nextLocation(int i) //Consider making this a query to the agent.
 		{
-			if (_WalkList.empty())
+			if (walkers[i].walk.mWalkList.empty())
 				return false;
  
-			_Destination = _WalkList.front();
-			_WalkList.pop_front();
-			_Direction = _Destination - _Node->getPosition();
-			_Distance = _Direction.normalise();
+			walkers[i]._Destination = walkers[i].walk.mWalkList.front();
+			walkers[i].walk.mWalkList.pop_front();
+			walkers[i]._Direction = walkers[i]._Destination - walkers[i].walk.Node->getPosition();
+			walkers[i]._Distance = walkers[i]._Direction.normalise();
  
   return true;
 }
@@ -109,52 +177,54 @@ class MyFrameListener : public Ogre::FrameListener {
 			_Cam->moveRelative(translate * evt.timeSinceLastFrame * _movementspeed);
 			//std::cout << "X " <<_Node->getPosition().x << " Y " << _Node->getPosition().y << " Z " << _Node->getPosition().z << std::endl;
 			//path movement
-
-			if (_Direction == Ogre::Vector3::ZERO) 
+			for(int i = 0; i < agentNR; i++)
 			{
-				if (nextLocation())
+				if (walkers[i]._Direction == Ogre::Vector3::ZERO) 
 				{
-					
-					walking = true;
-					
-				}
-			}
-			else
-			{
-				Ogre::Real move = _WalkSpd * evt.timeSinceLastFrame;
-				_Distance -= move;
- 
-				if (_Distance <= 0.0)
-				{
-					_Node->setPosition(_Destination);
-					_Direction = Ogre::Vector3::ZERO;
- 
-					if (nextLocation())
+					if (nextLocation(i))
 					{
-						Ogre::Vector3 src = _Node->getOrientation() * Ogre::Vector3::UNIT_X;
-						Ogre::Vector3 tempPos = _Node->getPosition();
-						if(_Direction.x == -1)
+						
+						walkers[i].walking = true;
+						
+					}
+				}
+				else
+				{
+					walkers[i]._rotation = 0;
+					Ogre::Real move = _WalkSpd * evt.timeSinceLastFrame;
+					walkers[i]._Distance -= move;
+	 
+					if (walkers[i]._Distance <= 0.0)
+					{
+						walkers[i].walk.Node->setPosition(walkers[i]._Destination);
+						walkers[i]._Direction = Ogre::Vector3::ZERO;
+	 
+						if (nextLocation(i))
 						{
-							_rotation = -1.57f;
-						}
-						else if(_Direction.x == 0){}
-						else
-						{
-							_rotation = 1.57f;
-						}
-						if(_Direction.z == 1)
-						{
-							_rotation = 0.00f;
-						}
-						else if(_Direction.z == 0){}
-						else
-						{
-							_rotation = 3.14f;
-						}
-
-						_Node->resetOrientation();
-						_Node->yaw(Ogre::Radian(_rotation));
-						/*
+							Ogre::Vector3 src = walkers[i].walk.Node->getOrientation() * Ogre::Vector3::UNIT_X;
+							Ogre::Vector3 tempPos = walkers[i].walk.Node->getPosition();
+							if(walkers[i]._Direction.x == -1)
+							{
+								walkers[i]._rotation = -1.57f;
+							}
+							else if(walkers[i]._Direction.x == 0){}
+							else
+							{
+								walkers[i]._rotation = 1.57f;
+							}
+							if(walkers[i]._Direction.z == 1)
+							{
+								walkers[i]._rotation = 0.00f;
+							}
+							else if(walkers[i]._Direction.z == 0){}
+							else
+							{
+								walkers[i]._rotation = 3.14f;
+							}
+	
+							walkers[i].walk.Node->resetOrientation();
+							walkers[i].walk.Node->yaw(Ogre::Radian(walkers[i]._rotation));
+							/*
 						if ((1.0 + src.dotProduct(_Direction)) < 0.0001)
 						{
 							_Node->resetOrientation();
@@ -167,65 +237,74 @@ class MyFrameListener : public Ogre::FrameListener {
 							_Node->rotate(quat);
 						}
 						*/
-					}
-					else
+						}
+						else
+						{
+							//_Node->rotate(OrgDirection);
+							//walkers[i].walk.Node->setOrientation(walkers[i].OrgDirection);
+							walkers[i].Dancing = true;
+							walkers[i].walking = false;
+						}
+				}
+				else
+				{
+					walkers[i].walk.Node->translate(move * walkers[i]._Direction);
+					if(walkers[i].walk.Node->getPosition().y < walkers[i]._Destination.y)
 					{
-						//_Node->rotate(OrgDirection);
-						_Node->setOrientation(OrgDirection);
-						Dancing = true;
-						walking = false;
+						Ogre::Vector3 temp = walkers[i].walk.Node->getPosition();
+						temp.y += 0.4;
+						walkers[i].walk.Node->setPosition(temp);
 					}
+				
+				}
+			}
+
+			if(walkers[i].walking)
+			{
+				walkers[i].Dancing = false;
+				/*
+				walkers[i]._aniStateDance->setEnabled(false);
+				walkers[i]._aniState->setEnabled (true) ;
+				walkers[i]._aniStateTop->setEnabled (true) ;
+				if (walkers[i]._aniState->hasEnded ( ) )
+				{
+					walkers[i]._aniState->setTimePosition( 0.0f ) ;
+				}
+				if (walkers[i]._aniStateTop->hasEnded ( ) )
+				{
+					walkers[i]._aniStateTop->setTimePosition( 0.0f ) ;
+				}
+				*/
+				
+			}
+			else if(walkers[i].Dancing)
+			{
+
+				//walkers[i]._aniStateDance->setEnabled(true);
 			}
 			else
 			{
-				_Node->translate(move * _Direction);
-				if(_Node->getPosition().y < _Destination.y)
-				{
-					Ogre::Vector3 temp = _Node->getPosition();
-					temp.y += 0.4;
-					_Node->setPosition(temp);
-				}
-				
+				/*
+				walkers[i]._aniState->setEnabled (false) ;
+				walkers[i]._aniStateTop->setEnabled (false) ;
+				walkers[i]._aniState->setTimePosition( 0.0f ) ;
+				walkers[i]._aniStateTop->setTimePosition( 0.0f ) ;
+				*/
 			}
+			/*
+			walkers[i]._aniState->addTime(evt.timeSinceLastFrame) ;
+			walkers[i]._aniStateDance->addTime(evt.timeSinceLastFrame) ;
+			walkers[i]._aniStateTop->addTime(evt.timeSinceLastFrame) ;
+			*/
 		}
-
-		if(walking)
-		{
-			Dancing = false;
-			_aniStateDance->setEnabled(false);
-			_aniState->setEnabled (true) ;
-			_aniStateTop->setEnabled (true) ;
-			if (_aniState->hasEnded ( ) )
-			{
-				_aniState->setTimePosition( 0.0f ) ;
-			}
-			if (_aniStateTop->hasEnded ( ) )
-			{
-				_aniStateTop->setTimePosition( 0.0f ) ;
-			}
-		}
-		else if(Dancing)
-		{
-			_aniStateDance->setEnabled(true);
-		}
-		else
-		{
-			_aniState->setEnabled (false) ;
-			_aniStateTop->setEnabled (false) ;
-			_aniState->setTimePosition( 0.0f ) ;
-			_aniStateTop->setTimePosition( 0.0f ) ;
-		}
-		_aniState->addTime(evt.timeSinceLastFrame) ;
-		_aniStateDance->addTime(evt.timeSinceLastFrame) ;
-		_aniStateTop->addTime(evt.timeSinceLastFrame) ;
-
 			//
-
+		/*
 			_Mouse->capture();
 			float rotX = _Mouse->getMouseState().X.rel * evt.timeSinceLastFrame * -1;
 			float rotY = _Mouse->getMouseState().Y.rel * evt.timeSinceLastFrame * -1;
 			_Cam->yaw(Ogre::Radian(rotX));
 			_Cam->pitch(Ogre::Radian(rotY));
+			*/
 			return true;
 		}
 };

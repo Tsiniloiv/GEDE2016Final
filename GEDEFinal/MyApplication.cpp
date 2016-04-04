@@ -16,12 +16,6 @@ using namespace std;
 #define gridSize 20
 #define dir 4
 
-struct walker
-{
-	std::deque<Ogre::Vector3> mWalkList;
-	Ogre::Entity* sinbad;
-	Ogre::SceneNode* Node;
-};
 
 class MyApplication {
 	private: 
@@ -32,18 +26,22 @@ class MyApplication {
 		bool _keepRunning;
 		Ogre::SceneNode* markerNode;
 		Ogre::Entity* sinbad;
+		Ogre::SceneNode* markerNode2;
+		Ogre::Entity* sinbad2;
 		Ogre::Entity* _myCubes[gridSize][gridSize];
 		std::pair<Ogre::Vector3,Ogre::Real> _myCubesWaypoints[gridSize][gridSize];
 		int size;
-
+		walker* walkers;
+		int agentNR;
 		//move on path
 		std::deque<Ogre::Vector3> mWalkList;
 		Ogre::Vector3 mDirection;
 		Ogre::Vector3 mDestination;
 
 		int map[gridSize][gridSize];
-
+		int xA, yA, xB, yB;
 		string route;
+		string route2;
 
 	public: 
 		MyApplication() 
@@ -52,6 +50,9 @@ class MyApplication {
 			_root = NULL;
 			_listener = NULL;
 			size = gridSize;
+			walkers = new walker[5];
+			agentNR = 2;
+
 		}
 
 		~MyApplication() {
@@ -107,7 +108,8 @@ class MyApplication {
 
 			loadResources();
 			createScene();
-			_listener = new MyFrameListener(window, camera,mWalkList,markerNode,sinbad);
+			//_listener = new MyFrameListener(window, camera,mWalkList,markerNode,sinbad);
+			_listener = new MyFrameListener(window, camera,walkers,agentNR);
 			_root->addFrameListener(_listener);
 			_root->startRendering();
 			return 0;
@@ -265,11 +267,11 @@ class MyApplication {
 				}
 			}
 		}
-		 int xA, yA, xB, yB;
-		xA = 0;
-		yA = 1;
-		xB = 19;
-		yB = 18;
+
+		xA = 19;
+		yA = 18;
+		xB = 0;
+		yB = 1;
 
 
 		//
@@ -279,6 +281,7 @@ class MyApplication {
     cout<<"Finish: "<<xB<<","<<yB<<endl;
     // get the route
     route=pathFind(xA, yA, xB, yB);
+	route2=pathFind(xB, yB, xA, yA);
     if(route=="") cout<<"An empty route generated!"<<endl;
     cout<<"Route:"<<endl;
     cout<<route<<endl<<endl;
@@ -413,13 +416,22 @@ class MyApplication {
 			sinbad = _sceneManager->createEntity("sinbad", "Sinbad.mesh");
 			markerNode = _sceneManager->getRootSceneNode()->createChildSceneNode();
 			markerNode->attachObject(sinbad);
+			agentNR++;
+			walkers[0].Node = markerNode;
+			walkers[0].sinbad = sinbad;
+			walkers[0].id = 0;
+			
+			
 			//markerNode->setPosition(modelNode->getPosition());
-			/*
+			
 			Ogre::Entity* marker2 = _sceneManager->createEntity("sinbad2", "Sinbad.mesh");
 			Ogre::SceneNode* markerNode2 = _sceneManager->getRootSceneNode()->createChildSceneNode();
 			markerNode2->attachObject(_sceneManager->getEntity("sinbad2"));
-			markerNode2->setPosition(farRightCorner);
-			*/
+			agentNR++;
+			walkers[1].Node = markerNode2;
+			walkers[1].sinbad = sinbad2;
+			walkers[1].id = 1;
+			
 			/* 
 			hokay so over x and z double loop
 			*/
@@ -430,11 +442,12 @@ class MyApplication {
 		renderMaze();
 		renderHeightmap();
 		//generate maze and do raycast
-		Ogre::Vector3 startPos;
-			startPos = _myCubesWaypoints[0][1].first;
-		markerNode->setPosition(startPos);
-		int pathX = 0;
-		int pathY = 1;
+
+		walkers[0].start = _myCubesWaypoints[xA][yA].first;
+		walkers[0].Node->setPosition(walkers[0].start);
+		markerNode->setPosition(walkers[0].start);
+		int pathX = xA;
+		int pathY = yA;
 		
 		if(route.length()>0)
     {
@@ -449,10 +462,11 @@ class MyApplication {
             x=x+dx[j];
             y=y+dy[j];
             map[x][y]=3;
-			mWalkList.push_back(_myCubesWaypoints[x][y].first);
+			walkers[0].mWalkList.push_back(_myCubesWaypoints[x][y].first);
 
         }
         map[y][x]=4;
+		walkers[0].finish = _myCubesWaypoints[x][y].first;
     
         // display the map with the route
         for(int y=0;y<m;y++)
@@ -471,32 +485,31 @@ class MyApplication {
             cout<<endl;
         }
     }
-		/*
-		mWalkList.push_back(_myCubesWaypoints[4][1].first);
-		mWalkList.push_back(_myCubesWaypoints[4][4].first);
-		mWalkList.push_back(_myCubesWaypoints[8][4].first);
-		mWalkList.push_back(_myCubesWaypoints[8][6].first);
-		mWalkList.push_back(_myCubesWaypoints[6][6].first);
-		mWalkList.push_back(_myCubesWaypoints[6][8].first);
-		mWalkList.push_back(_myCubesWaypoints[9][8].first);
-		mWalkList.push_back(_myCubesWaypoints[11][8].first);
-		mWalkList.push_back(_myCubesWaypoints[11][3].first);
-		mWalkList.push_back(_myCubesWaypoints[15][3].first);
-		mWalkList.push_back(_myCubesWaypoints[15][4].first);
-		mWalkList.push_back(_myCubesWaypoints[18][4].first);
-		mWalkList.push_back(_myCubesWaypoints[18][6].first);
-		mWalkList.push_back(_myCubesWaypoints[16][6].first);
-		mWalkList.push_back(_myCubesWaypoints[16][8].first);
-		mWalkList.push_back(_myCubesWaypoints[18][8].first);
-		mWalkList.push_back(_myCubesWaypoints[18][11].first);
-		mWalkList.push_back(_myCubesWaypoints[16][11].first);
-		mWalkList.push_back(_myCubesWaypoints[16][14].first);
-		mWalkList.push_back(_myCubesWaypoints[18][14].first);
-		mWalkList.push_back(_myCubesWaypoints[18][16].first);
-		mWalkList.push_back(_myCubesWaypoints[16][16].first);
-		mWalkList.push_back(_myCubesWaypoints[16][18].first);
-		mWalkList.push_back(_myCubesWaypoints[19][18].first);
-		*/
+
+	walkers[1].start = _myCubesWaypoints[xB][yB].first;
+	walkers[1].Node->setPosition(walkers[1].start);
+	markerNode2->setPosition(walkers[1].start);
+	pathX = xB;
+	pathY = yB;
+	if(route2.length()>0)
+    {
+        int j; char c;
+        int x=pathX;
+        int y=pathY;
+        map[y][x]=2;
+        for(int i=0;i<route2.length();i++)
+        {
+            c =route2.at(i);
+            j=atoi(&c); 
+            x=x+dx[j];
+            y=y+dy[j];
+            map[x][y]=3;
+			walkers[1].mWalkList.push_back(_myCubesWaypoints[x][y].first);
+
+        }
+        map[y][x]=4;
+		walkers[1].finish = _myCubesWaypoints[x][y].first;
+    }
 		Ogre::Ray ray(Ogre::Vector3(0, 5, 0), Ogre::Vector3(0, -1, 0));
 
 			std::pair<bool, Ogre::Real> manualrayresult = ray.intersects(_sceneManager->getEntity("sinbad")->getBoundingBox());
@@ -518,13 +531,6 @@ class MyApplication {
 
 		//pathfinding 
 
-		/*
-// Determine priority (in the priority queue)
-bool operator<(const node & a, const node & b)
-{
-  return a.getPriority() > b.getPriority();
-}
-*/
 // A-star algorithm.
 // The route returned is a string of direction digits.
 string pathFind( const int & xStart, const int & yStart, const int & xFinish, const int & yFinish )
