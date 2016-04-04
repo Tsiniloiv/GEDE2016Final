@@ -84,9 +84,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Agent.cpp" />
     <ClCompile Include="MyApplication.cpp" />
     <ClCompile Include="MyFrameListener.cpp" />
+    <ClCompile Include="SearchNode.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="State.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

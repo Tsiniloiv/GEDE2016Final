@@ -1,19 +1,25 @@
 #include "OGRE/Ogre.h"
 #include "State.cpp"
 #include "OIS\OIS.h"
+#include "SearchNode.cpp"
 
 using namespace std;
 
-class IAgengt {
+class Agent {
 	/* 
-		This'll be a virtual class which the real agents will inherit. Polymorphism woo!
-
 		Member variables: current state, current path
-		Methods: search, generate successor state, heuristic
+		Methods: search, return next destination
 	*/
 	private:
 		State currState;
 		std::deque<Ogre::Vector3> currSolution;
 	public:
-		
+		Agent(State s) {
+			currState = s;
+		}
+		void search() {
+			SearchNode root = SearchNode(currState, nullptr, actions::none, 0);
+
+
+		}
 };
