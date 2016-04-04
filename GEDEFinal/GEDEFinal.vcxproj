@@ -85,8 +85,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Agent.cpp" />
+    <ClCompile Include="AStarBasic.cpp" />
     <ClCompile Include="MyApplication.cpp" />
     <ClCompile Include="MyFrameListener.cpp" />
+    <ClCompile Include="ISearch.cpp" />
     <ClCompile Include="SearchNode.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="State.cpp" />

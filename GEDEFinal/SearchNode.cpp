@@ -34,4 +34,10 @@ class SearchNode {
 			}
 			f = g + heuristic();
 		}
+
+		struct cmp {
+			bool operator()(SearchNode a, SearchNode b) {
+				return a.f < b.f;
+			}
+		};
 };
