@@ -24,5 +24,8 @@
     <ClCompile Include="MyFrameListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Astar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

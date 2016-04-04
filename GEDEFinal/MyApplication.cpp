@@ -13,6 +13,14 @@
 
 using namespace std;
 #define gridSize 20
+
+struct walker
+{
+	std::deque<Ogre::Vector3> mWalkList;
+	Ogre::Entity* sinbad;
+	Ogre::SceneNode* Node;
+};
+
 class MyApplication {
 	private: 
 		Ogre::SceneManager* _sceneManager;
@@ -21,10 +29,11 @@ class MyApplication {
 		Ogre::RaySceneQuery* _ray_scene_query;
 		bool _keepRunning;
 		Ogre::SceneNode* markerNode;
-
+		Ogre::Entity* sinbad;
 		Ogre::Entity* _myCubes[gridSize][gridSize];
 		std::pair<Ogre::Vector3,Ogre::Real> _myCubesWaypoints[gridSize][gridSize];
 		int size;
+
 		//move on path
 		std::deque<Ogre::Vector3> mWalkList;
 		Ogre::Vector3 mDirection;
@@ -80,8 +89,8 @@ class MyApplication {
 			_ray_scene_query->setSortByDistance(true);
 			
 			Ogre::Camera* camera = _sceneManager->createCamera("Camera");
-			camera->setPosition(Ogre::Vector3(0, 50, 25));
-			camera->lookAt(Ogre::Vector3(0, 0, 0));
+			camera->setPosition(Ogre::Vector3(90, 250, 100));
+			camera->lookAt(Ogre::Vector3(90, 0, 85));
 			camera->setNearClipDistance(5);
 
 			Ogre::Viewport* viewport = window->addViewport(camera);
@@ -92,7 +101,7 @@ class MyApplication {
 
 			loadResources();
 			createScene();
-			_listener = new MyFrameListener(window, camera,mWalkList,markerNode);
+			_listener = new MyFrameListener(window, camera,mWalkList,markerNode,sinbad);
 			_root->addFrameListener(_listener);
 			_root->startRendering();
 			return 0;
@@ -253,9 +262,6 @@ class MyApplication {
 				{
 					_myCubes[x][i] =  _sceneManager->createEntity(name, "Cube.mesh");
 					_myCubes[x][i]->setMaterialName("shader/texture3");
-					//_myCubes[x][i]->setMaterialName("shader/orange");
-					//const Ogre::AxisAlignedBox& CubeBoundingBox=_myCubes[x][i]->getWorldBoundingBox(true);
-						
 
 					Ogre::SceneNode* cubenodeX = _sceneManager->getRootSceneNode()->createChildSceneNode();
 				//cubenode2->attachObject(_myCube2);
@@ -326,7 +332,7 @@ class MyApplication {
 			//modelNode->attachObject(world);
 			cout << "attached world model to scene node\n";
 
-			Ogre::Entity* sinbad = _sceneManager->createEntity("sinbad", "Sinbad.mesh");
+			sinbad = _sceneManager->createEntity("sinbad", "Sinbad.mesh");
 			markerNode = _sceneManager->getRootSceneNode()->createChildSceneNode();
 			markerNode->attachObject(sinbad);
 			//markerNode->setPosition(modelNode->getPosition());
@@ -357,7 +363,23 @@ class MyApplication {
 		mWalkList.push_back(_myCubesWaypoints[6][6].first);
 		mWalkList.push_back(_myCubesWaypoints[6][8].first);
 		mWalkList.push_back(_myCubesWaypoints[9][8].first);
-
+		mWalkList.push_back(_myCubesWaypoints[11][8].first);
+		mWalkList.push_back(_myCubesWaypoints[11][3].first);
+		mWalkList.push_back(_myCubesWaypoints[15][3].first);
+		mWalkList.push_back(_myCubesWaypoints[15][4].first);
+		mWalkList.push_back(_myCubesWaypoints[18][4].first);
+		mWalkList.push_back(_myCubesWaypoints[18][6].first);
+		mWalkList.push_back(_myCubesWaypoints[16][6].first);
+		mWalkList.push_back(_myCubesWaypoints[16][8].first);
+		mWalkList.push_back(_myCubesWaypoints[18][8].first);
+		mWalkList.push_back(_myCubesWaypoints[18][11].first);
+		mWalkList.push_back(_myCubesWaypoints[16][11].first);
+		mWalkList.push_back(_myCubesWaypoints[16][14].first);
+		mWalkList.push_back(_myCubesWaypoints[18][14].first);
+		mWalkList.push_back(_myCubesWaypoints[18][16].first);
+		mWalkList.push_back(_myCubesWaypoints[16][16].first);
+		mWalkList.push_back(_myCubesWaypoints[16][18].first);
+		mWalkList.push_back(_myCubesWaypoints[19][18].first);
 
 		Ogre::Ray ray(Ogre::Vector3(0, 5, 0), Ogre::Vector3(0, -1, 0));
 

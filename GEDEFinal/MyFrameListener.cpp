@@ -21,9 +21,17 @@ class MyFrameListener : public Ogre::FrameListener {
 		Ogre::SceneNode* _Node;
 		Ogre::Real _Distance;
 		Ogre::Real _WalkSpd;
+		Ogre::Entity* _sinbad;
+		Ogre::AnimationState* mAnimationState;
+		Ogre::AnimationState* _aniState;
+		Ogre::AnimationState* _aniStateDance;
+		Ogre::AnimationState* _aniStateTop;
+		bool Dancing;
+		bool walking;
 		std::deque<Ogre::Vector3> _WalkList;
+		Ogre::Quaternion OrgDirection;
 	public: 
- 		MyFrameListener(Ogre::RenderWindow* win, Ogre::Camera* cam,std::deque<Ogre::Vector3> mWalkList,Ogre::SceneNode* node) 
+ 		MyFrameListener(Ogre::RenderWindow* win, Ogre::Camera* cam,std::deque<Ogre::Vector3> mWalkList,Ogre::SceneNode* node,Ogre::Entity* sinbad) 
 		{
 			OIS::ParamList parameters;
 			unsigned int windowHandle = 0;
@@ -39,9 +47,19 @@ class MyFrameListener : public Ogre::FrameListener {
 			_Mouse = static_cast<OIS::Mouse*>(_InputManager->createInputObject(OIS::OISMouse, false));
 			_Direction = Ogre::Vector3::ZERO;
 			_Destination = Ogre::Vector3::ZERO;
+			OrgDirection = _Node->getOrientation();
 			_WalkSpd = 5;
 			_Distance = 0;
+			_sinbad = sinbad;
 			_WalkList = mWalkList;
+			Dancing = false;
+			walking = false;
+			_aniState = sinbad->getAnimationState("RunBase");
+			_aniStateDance = sinbad->getAnimationState("Dance");
+			_aniStateDance->setLoop(true);
+			_aniState->setLoop(false);
+			_aniStateTop = sinbad->getAnimationState("RunTop");
+			_aniStateTop->setLoop(false);
 		}
 		~MyFrameListener() {
 			_InputManager->destroyInputObject(_Keyboard);
@@ -64,6 +82,7 @@ class MyFrameListener : public Ogre::FrameListener {
 
 		bool frameStarted(const Ogre::FrameEvent& evt) 
 		{
+			float _rotation = 0.0f;
 			_Keyboard->capture();
 			if(_Keyboard->isKeyDown(OIS::KC_ESCAPE)) {
 				return false;
@@ -88,66 +107,125 @@ class MyFrameListener : public Ogre::FrameListener {
 				translate += Ogre::Vector3(0, 1, 0);
 			}
 			_Cam->moveRelative(translate * evt.timeSinceLastFrame * _movementspeed);
-
+			std::cout << "X " <<_Node->getPosition().x << " Y " << _Node->getPosition().y << " Z " << _Node->getPosition().z << std::endl;
 			//path movement
 
 			if (_Direction == Ogre::Vector3::ZERO) 
 			{
 				if (nextLocation())
 				{
-					/*
-					mAnimationState = mEntity->getAnimationState("Walk");
-					mAnimationState->setLoop(true);
-					mAnimationState->setEnabled(true);
-					*/
+					
+					walking = true;
+					
 				}
 			}
 			else
 			{
-    Ogre::Real move = _WalkSpd * evt.timeSinceLastFrame;
-    _Distance -= move;
+				Ogre::Real move = _WalkSpd * evt.timeSinceLastFrame;
+				_Distance -= move;
  
-    if (_Distance <= 0.0)
-    {
-      _Node->setPosition(_Destination);
-      _Direction = Ogre::Vector3::ZERO;
+				if (_Distance <= 0.0)
+				{
+					_Node->setPosition(_Destination);
+					_Direction = Ogre::Vector3::ZERO;
  
-      if (nextLocation())
-      {
-		Ogre::Vector3 src = _Node->getOrientation() * Ogre::Vector3::UNIT_X;
- 
-		if ((1.0 + src.dotProduct(_Direction)) < 0.0001)
+					if (nextLocation())
+					{
+						Ogre::Vector3 src = _Node->getOrientation() * Ogre::Vector3::UNIT_X;
+						Ogre::Vector3 tempPos = _Node->getPosition();
+						if(_Direction.x == -1)
+						{
+							_rotation = -1.57f;
+						}
+						else if(_Direction.x == 0){}
+						else
+						{
+							_rotation = 1.57f;
+						}
+						if(_Direction.z == 1)
+						{
+							_rotation = 0.00f;
+						}
+						else if(_Direction.z == 0){}
+						else
+						{
+							_rotation = 3.14f;
+						}
+
+						_Node->resetOrientation();
+						_Node->yaw(Ogre::Radian(_rotation));
+						/*
+						if ((1.0 + src.dotProduct(_Direction)) < 0.0001)
+						{
+							_Node->resetOrientation();
+							_Node->yaw(Ogre::Degree(180));
+						}
+						else
+						{
+							_Node->resetOrientation();
+							Ogre::Quaternion quat = src.getRotationTo(_Direction);
+							_Node->rotate(quat);
+						}
+						*/
+					}
+					else
+					{
+						//_Node->rotate(OrgDirection);
+						_Node->setOrientation(OrgDirection);
+						Dancing = true;
+						walking = false;
+					}
+			}
+			else
+			{
+				_Node->translate(move * _Direction);
+				if(_Node->getPosition().y < _Destination.y)
+				{
+					Ogre::Vector3 temp = _Node->getPosition();
+					temp.y += 0.4;
+					_Node->setPosition(temp);
+				}
+				
+			}
+		}
+
+		if(walking)
 		{
-			_Node->yaw(Ogre::Degree(180));
+			Dancing = false;
+			_aniStateDance->setEnabled(false);
+			_aniState->setEnabled (true) ;
+			_aniStateTop->setEnabled (true) ;
+			if (_aniState->hasEnded ( ) )
+			{
+				_aniState->setTimePosition( 0.0f ) ;
+			}
+			if (_aniStateTop->hasEnded ( ) )
+			{
+				_aniStateTop->setTimePosition( 0.0f ) ;
+			}
+		}
+		else if(Dancing)
+		{
+			_aniStateDance->setEnabled(true);
 		}
 		else
 		{
-			Ogre::Quaternion quat = src.getRotationTo(_Direction);
-			_Node->rotate(quat);
+			_aniState->setEnabled (false) ;
+			_aniStateTop->setEnabled (false) ;
+			_aniState->setTimePosition( 0.0f ) ;
+			_aniStateTop->setTimePosition( 0.0f ) ;
 		}
-      }
-      else
-      {
-		  /*
-		_AnimationState = _Entity->getAnimationState("Idle");
-		mAnimationState->setLoop(true);
-		mAnimationState->setEnabled(true);
-		*/
-      }
-    }
-    else
-    {
-      _Node->translate(move * _Direction);
-    }
-  }
+		_aniState->addTime(evt.timeSinceLastFrame) ;
+		_aniStateDance->addTime(evt.timeSinceLastFrame) ;
+		_aniStateTop->addTime(evt.timeSinceLastFrame) ;
 
 			//
 
-			/*_Mouse->capture();
+			_Mouse->capture();
 			float rotX = _Mouse->getMouseState().X.rel * evt.timeSinceLastFrame * -1;
 			float rotY = _Mouse->getMouseState().Y.rel * evt.timeSinceLastFrame * -1;
 			_Cam->yaw(Ogre::Radian(rotX));
-			_Cam->pitch(Ogre::Radian(rotY));*/
+			_Cam->pitch(Ogre::Radian(rotY));
 			return true;
 		}
 };
